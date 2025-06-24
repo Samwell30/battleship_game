@@ -1,33 +1,10 @@
+/* Basic reset and body styles */
 body {
+    margin: 0;
     font-family: Arial, sans-serif;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    margin: 20px;
+    min-height: 100vh;
     background-color: #f0f0f0;
 }
-
-#game-container {
-    display: flex;
-    gap: 50px;
-    margin-top: 30px;
-}
-
-.game-board {
-    display: grid;
-    grid-template-columns: repeat(10, 30px); /* 10 columns of 30px each */
-    grid-template-rows: repeat(10, 30px); /* 10 rows of 30px each */
-    border: 2px solid #333;
-    width: 300px; /* 10 * 30px */
-    height: 300px; /* 10 * 30px */
-    background-color: #eee;
-}
-
-.cell {
-    width: 30px;
-    height: 30px;
-    border: 1px solid #ccc;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
-
-/* Add more styling later for ships, hits, misses, etc. */
