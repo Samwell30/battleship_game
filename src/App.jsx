@@ -1,18 +1,65 @@
 import React from 'react';
-import './App.css'; // You'll create this for App-specific styles
+import './App.css';
 
 function App() {
-    // You'll define state for your game boards, ships, etc. here or in child components
+
+    const [playerBoard, setPlayerBoard] = React.useState(
+        Array(6).fill().map(() => Array(6).fill('water'))
+    );
+    
+    const handleCellClick = (row, col) => {
+        setPlayerBoard(prevBoard => {
+            const newBoard = [...prevBoard];
+            newBoard[row] = [...newBoard[row]];
+            
+            // Toggle between water and ship
+            if (newBoard[row][col] === 'water') {
+                newBoard[row][col] = 'ship';
+            } else {
+                newBoard[row][col] = 'water';
+            }
+            
+            return newBoard;
+        });
+    };
+
+    const getCellColor = (cellState) => {
+        switch(cellState) {
+            case 'ship': return '#8B4513'; 
+            case 'water': return '#87CEEB'; 
+            default: return '#87CEEB';
+        }
+    };
+    const createBoard = () => {
+        const cells = [];
+        for (let row = 0; row < 6; row++) {
+            for (let col = 0; col < 6; col++) {
+                cells.push(
+                    <div
+                        key={`${row}-${col}`}
+                        className="cell"
+                        data-row={row}
+                        data-col={col}
+                    >
+                        {row},{col}
+                    </div>
+                );
+            }
+        }
+        return cells;
+    };
+
     return (
         <div className="battleship-app">
-            <h1>Battleship</h1>
+            <h1>Battleship Game</h1>
             <div className="game-container">
-                {/* Player Board Component (you'll create this) */}
-                <div className="game-board" id="player-board"></div>
-                {/* Computer Board Component (you'll create this) */}
-                <div className="game-board" id="computer-board"></div>
+                <div className="game-board">
+                    {createBoard()}
+                </div>
+                <div className="game-board">
+                    {createBoard()}
+                </div>
             </div>
-            {/* Game status, buttons, etc. */}
         </div>
     );
 }
