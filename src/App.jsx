@@ -25,6 +25,9 @@ function App() {
     );
 
     const [gameMode, setGameMode] = React.useState('placement');
+    const [currentTurn, setCurrentTurn] = React.useState('player'); // 'player' or 'cpu'
+    const [gameOver, setGameOver] = React.useState(false);
+    const [winner, setWinner] = React.useState(null);
 
     const ships = [
         { name: 'Patrol Boat', length: 1, placed: false },
@@ -84,7 +87,78 @@ function App() {
         }
     };
 
+    // Check if all ships on a board are sunk
+    const checkGameOver = (board, ships) => {
+        for (let row = 0; row < 6; row++) {
+            for (let col = 0; col < 6; col++) {
+                if (ships[row][col] === 'ship' && board[row][col] !== 'hit') {
+                    return false; // Found a ship that hasn't been hit
+                }
+            }
+        }
+        return true; // All ships have been hit
+    };
+
+    // CPU attack function
+    const cpuAttack = React.useCallback(() => {
+        if (currentTurn !== 'cpu' || gameOver) return;
+
+        // Find all available cells to attack
+        const availableCells = [];
+        for (let row = 0; row < 6; row++) {
+            for (let col = 0; col < 6; col++) {
+                if (playerBoard[row][col] === 'water' || playerBoard[row][col] === 'ship') {
+                    availableCells.push({ row, col });
+                }
+            }
+        }
+
+        if (availableCells.length === 0) return;
+
+        // Choose a random cell to attack
+        const randomIndex = Math.floor(Math.random() * availableCells.length);
+        const { row, col } = availableCells[randomIndex];
+
+        setPlayerBoard(prevBoard => {
+            const newBoard = [...prevBoard];
+            newBoard[row] = [...newBoard[row]];
+            
+            if (newBoard[row][col] === 'ship') {
+                newBoard[row][col] = 'hit';
+            } else {
+                newBoard[row][col] = 'miss';
+            }
+            
+            return newBoard;
+        });
+
+        // Check if CPU won
+        setTimeout(() => {
+            setPlayerBoard(currentPlayerBoard => {
+                if (checkGameOver(currentPlayerBoard, currentPlayerBoard)) {
+                    setGameOver(true);
+                    setWinner('CPU');
+                } else {
+                    setCurrentTurn('player');
+                }
+                return currentPlayerBoard;
+            });
+        }, 1000);
+    }, [currentTurn, gameOver, playerBoard]);
+
+    // Trigger CPU attack when it's CPU's turn
+    React.useEffect(() => {
+        if (currentTurn === 'cpu' && gameMode === 'attack' && !gameOver) {
+            const timer = setTimeout(() => {
+                cpuAttack();
+            }, 1500); // 1.5 second delay for CPU attack
+            
+            return () => clearTimeout(timer);
+        }
+    }, [currentTurn, gameMode, gameOver, cpuAttack]);
+
     const attackCell = (row, col) => {
+        if (currentTurn !== 'player' || gameOver) return;
         if (enemyBoard[row][col] !== 'water' && enemyBoard[row][col] !== 'ship') {
             return;
         }
@@ -101,6 +175,19 @@ function App() {
             
             return newBoard;
         });
+
+        // Check if player won, then switch turns
+        setTimeout(() => {
+            setEnemyBoard(currentEnemyBoard => {
+                if (checkGameOver(currentEnemyBoard, enemyShips)) {
+                    setGameOver(true);
+                    setWinner('Player');
+                } else {
+                    setCurrentTurn('cpu');
+                }
+                return currentEnemyBoard;
+            });
+        }, 500);
     };
 
 const resetShips = () => {
@@ -109,6 +196,9 @@ const resetShips = () => {
         setAvailableShips(ships.map(ship => ({ ...ship, placed: false })));
         setCurrentShip(0);
         setGameMode('placement');
+        setCurrentTurn('player');
+        setGameOver(false);
+        setWinner(null);
         
         // Reset enemy ships to their original positions
         setEnemyShips(
@@ -125,6 +215,9 @@ const resetShips = () => {
     
     const startBattle = () => {
         setGameMode('attack');
+        setCurrentTurn('player');
+        setGameOver(false);
+        setWinner(null);
     };
 
     const allShipsPlaced = availableShips.every(ship => ship.placed);
@@ -146,7 +239,12 @@ const resetShips = () => {
             )}
 
             {gameMode === 'attack' && (
-                <AttackMode resetShips={resetShips} />
+                <AttackMode 
+                    resetShips={resetShips} 
+                    currentTurn={currentTurn}
+                    gameOver={gameOver}
+                    winner={winner}
+                />
             )}
 
             <div className="game-container">
@@ -159,7 +257,7 @@ const resetShips = () => {
                 />
                 <GameBoard
                     board={enemyBoard}
-                    isClickable={gameMode === 'attack'}
+                    isClickable={gameMode === 'attack' && currentTurn === 'player' && !gameOver}
                     isEnemyBoard={true}
                     onCellClick={attackCell}
                     title="Enemy Board"
