@@ -6,18 +6,18 @@ import AttackMode from './components/AttackMode';
 
 function App() {
     const [playerBoard, setPlayerBoard] = React.useState(
-        Array(6).fill().map(() => Array(6).fill('water'))
+        Array(5).fill().map(() => Array(5).fill('water'))
     );
 
     const [enemyBoard, setEnemyBoard] = React.useState(
-        Array(6).fill().map(() => Array(6).fill('water'))
+        Array(5).fill().map(() => Array(5).fill('water'))
     );
 
     const [enemyShips, setEnemyShips] = React.useState(
-        Array(6).fill().map((_, row) => Array(6).fill().map((_, col) => {
-            if ((row === 1 && col === 1) || 
-                (row === 3 && (col === 2 || col === 3)) || 
-                (row === 5 && (col === 0 || col === 1 || col === 2))) {
+        Array(5).fill().map((_, row) => Array(5).fill().map((_, col) => {
+            if ((row === 1 && col === 1) ||
+                (row === 3 && (col === 1 || col === 2)) ||
+                (row === 4 && (col === 0 || col === 1))) {
                 return 'ship';
             }
             return 'water';
@@ -41,12 +41,12 @@ function App() {
 
     const canPlaceShip = (row, col, length, direction) => {
         if (direction === 'horizontal') {
-            if (col + length > 6) return false;
+            if (col + length > 5) return false;
             for (let i = 0; i < length; i++) {
                 if (playerBoard[row][col + i] !== 'water') return false;
             }
         } else {
-            if (row + length > 6) return false;
+            if (row + length > 5) return false;
             for (let i = 0; i < length; i++) {
                 if (playerBoard[row + i][col] !== 'water') return false;
             }
@@ -61,7 +61,7 @@ function App() {
         if (canPlaceShip(row, col, ship.length, shipDirection)) {
             setPlayerBoard(prevBoard => {
                 const newBoard = [...prevBoard];
-                
+
                 if (shipDirection === 'horizontal') {
                     for (let i = 0; i < ship.length; i++) {
                         newBoard[row][col + i] = 'ship';
@@ -71,7 +71,7 @@ function App() {
                         newBoard[row + i][col] = 'ship';
                     }
                 }
-                
+
                 return newBoard;
             });
 
@@ -89,8 +89,8 @@ function App() {
 
     // Check if all ships on a board are sunk
     const checkGameOver = (board, ships) => {
-        for (let row = 0; row < 6; row++) {
-            for (let col = 0; col < 6; col++) {
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col < 5; col++) {
                 if (ships[row][col] === 'ship' && board[row][col] !== 'hit') {
                     return false; // Found a ship that hasn't been hit
                 }
@@ -105,8 +105,8 @@ function App() {
 
         // Find all available cells to attack
         const availableCells = [];
-        for (let row = 0; row < 6; row++) {
-            for (let col = 0; col < 6; col++) {
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col < 5; col++) {
                 if (playerBoard[row][col] === 'water' || playerBoard[row][col] === 'ship') {
                     availableCells.push({ row, col });
                 }
@@ -122,13 +122,13 @@ function App() {
         setPlayerBoard(prevBoard => {
             const newBoard = [...prevBoard];
             newBoard[row] = [...newBoard[row]];
-            
+
             if (newBoard[row][col] === 'ship') {
                 newBoard[row][col] = 'hit';
             } else {
                 newBoard[row][col] = 'miss';
             }
-            
+
             return newBoard;
         });
 
@@ -152,7 +152,7 @@ function App() {
             const timer = setTimeout(() => {
                 cpuAttack();
             }, 1500); // 1.5 second delay for CPU attack
-            
+
             return () => clearTimeout(timer);
         }
     }, [currentTurn, gameMode, gameOver, cpuAttack]);
@@ -166,13 +166,13 @@ function App() {
         setEnemyBoard(prevBoard => {
             const newBoard = [...prevBoard];
             newBoard[row] = [...newBoard[row]];
-            
+
             if (enemyShips[row][col] === 'ship') {
                 newBoard[row][col] = 'hit';
             } else {
                 newBoard[row][col] = 'miss';
             }
-            
+
             return newBoard;
         });
 
@@ -190,29 +190,29 @@ function App() {
         }, 500);
     };
 
-const resetShips = () => {
-        setPlayerBoard(Array(6).fill().map(() => Array(6).fill('water')));
-        setEnemyBoard(Array(6).fill().map(() => Array(6).fill('water'))); // Clear enemy board
+    const resetShips = () => {
+        setPlayerBoard(Array(5).fill().map(() => Array(5).fill('water')));
+        setEnemyBoard(Array(5).fill().map(() => Array(5).fill('water'))); // Clear enemy board
         setAvailableShips(ships.map(ship => ({ ...ship, placed: false })));
         setCurrentShip(0);
         setGameMode('placement');
         setCurrentTurn('player');
         setGameOver(false);
         setWinner(null);
-        
+
         // Reset enemy ships to their original positions
         setEnemyShips(
-            Array(6).fill().map((_, row) => Array(6).fill().map((_, col) => {
-                if ((row === 1 && col === 1) || 
-                    (row === 3 && (col === 2 || col === 3)) || 
-                    (row === 5 && (col === 0 || col === 1 || col === 2))) {
+            Array(5).fill().map((_, row) => Array(5).fill().map((_, col) => {
+                if ((row === 1 && col === 1) ||
+                    (row === 3 && (col === 1 || col === 2)) ||
+                    (row === 4 && (col === 0 || col === 1))) {
                     return 'ship';
                 }
                 return 'water';
             }))
         );
     };
-    
+
     const startBattle = () => {
         setGameMode('attack');
         setCurrentTurn('player');
@@ -239,8 +239,8 @@ const resetShips = () => {
             )}
 
             {gameMode === 'attack' && (
-                <AttackMode 
-                    resetShips={resetShips} 
+                <AttackMode
+                    resetShips={resetShips}
                     currentTurn={currentTurn}
                     gameOver={gameOver}
                     winner={winner}
